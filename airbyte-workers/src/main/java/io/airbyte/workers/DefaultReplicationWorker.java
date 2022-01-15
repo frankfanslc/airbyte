@@ -4,6 +4,8 @@
 
 package io.airbyte.workers;
 
+import com.google.common.collect.Lists;
+import io.airbyte.config.FailureReason;
 import io.airbyte.config.ReplicationAttemptSummary;
 import io.airbyte.config.ReplicationOutput;
 import io.airbyte.config.StandardSyncInput;
@@ -14,6 +16,7 @@ import io.airbyte.config.SyncStats;
 import io.airbyte.config.WorkerDestinationConfig;
 import io.airbyte.config.WorkerSourceConfig;
 import io.airbyte.protocol.models.AirbyteMessage;
+import io.airbyte.workers.helper.FailureHelper;
 import io.airbyte.workers.protocols.airbyte.AirbyteDestination;
 import io.airbyte.workers.protocols.airbyte.AirbyteMapper;
 import io.airbyte.workers.protocols.airbyte.AirbyteSource;
@@ -27,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +108,9 @@ public class DefaultReplicationWorker implements ReplicationWorker {
     destinationConfig.setCatalog(mapper.mapCatalog(destinationConfig.getCatalog()));
 
     final long startTime = System.currentTimeMillis();
+    final AtomicReference<FailureReason> sourceFailure = new AtomicReference<>();
+    final AtomicReference<FailureReason> destinationFailure = new AtomicReference<>();
+
     try {
       LOGGER.info("configured sync modes: {}", syncInput.getCatalog().getStreams()
           .stream()
@@ -119,13 +126,23 @@ public class DefaultReplicationWorker implements ReplicationWorker {
         destination.start(destinationConfig, jobRoot);
         source.start(sourceConfig, jobRoot);
 
+        // note: `whenComplete` is used instead of `exceptionally` so that the original exception is still
+        // thrown
         final CompletableFuture<?> destinationOutputThreadFuture = CompletableFuture.runAsync(
             getDestinationOutputRunnable(destination, cancelled, messageTracker, mdc),
-            executors);
+            executors).whenComplete((msg, ex) -> {
+          if (ex != null) {
+            destinationFailure.set(FailureHelper.destinationFailure(ex, Long.valueOf(jobId), attempt));
+          }
+        });
 
         final CompletableFuture<?> replicationThreadFuture = CompletableFuture.runAsync(
             getReplicationRunnable(source, destination, cancelled, mapper, messageTracker, mdc),
-            executors);
+            executors).whenComplete((msg, ex) -> {
+          if (ex != null) {
+            sourceFailure.set(FailureHelper.sourceFailure(ex, Long.valueOf(jobId), attempt));
+          }
+        });
 
         LOGGER.info("Waiting for source and destination threads to complete.");
         // CompletableFuture#allOf waits until all futures finish before returning, even if one throws an
@@ -198,10 +215,10 @@ public class DefaultReplicationWorker implements ReplicationWorker {
           .withEndTime(System.currentTimeMillis());
 
       LOGGER.info("sync summary: {}", summary);
-
       final ReplicationOutput output = new ReplicationOutput()
           .withReplicationAttemptSummary(summary)
-          .withOutputCatalog(destinationConfig.getCatalog());
+          .withOutputCatalog(destinationConfig.getCatalog())
+          .withFailures(Lists.newArrayList(sourceFailure.get(), destinationFailure.get()));
 
       if (messageTracker.getSourceOutputState().isPresent()) {
         LOGGER.info("Source output at least one state message");

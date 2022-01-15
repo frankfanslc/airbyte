@@ -19,6 +19,7 @@ import io.airbyte.commons.resources.MoreResources;
 import io.airbyte.commons.text.Names;
 import io.airbyte.commons.text.Sqls;
 import io.airbyte.commons.version.AirbyteVersion;
+import io.airbyte.config.AttemptFailureSummary;
 import io.airbyte.config.JobConfig;
 import io.airbyte.config.JobConfig.ConfigType;
 import io.airbyte.config.JobOutput;
@@ -320,6 +321,19 @@ public class DefaultJobPersistence implements JobPersistence {
             .set(ATTEMPTS.UPDATED_AT, now)
             .where(ATTEMPTS.JOB_ID.eq(jobId), ATTEMPTS.ATTEMPT_NUMBER.eq(attemptNumber))
             .execute());
+  }
+
+  @Override
+  public void writeAttemptFailureSummary(final long jobId, final int attemptNumber, final AttemptFailureSummary failureSummary) {
+    final OffsetDateTime now = OffsetDateTime.ofInstant(timeSupplier.get(), ZoneOffset.UTC);
+    LOGGER.info("Would have persisted failure summary to database: {}", failureSummary);
+    // TODO uncomment once migration to add column is added
+    // jobDatabase.transaction(
+    // ctx -> ctx.update(ATTEMPTS)
+    // .set(ATTEMPTS.FAILURE_SUMMARY, JSONB.valueOf(Jsons.serialize(failureSummary)))
+    // .set(ATTEMPTS.UPDATED_AT, now)
+    // .where(ATTEMPTS.JOB_ID.eq(jobId), ATTEMPTS.ATTEMPT_NUMBER.eq(attemptNumber))
+    // .execute());
   }
 
   @Override

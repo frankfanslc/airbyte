@@ -18,7 +18,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 public class FailureHelper {
 
   private static final String JOB_ID_METADATA_KEY = "jobId";
-  private static final String ATTEMPT_METADATA_KEY = "attempt";
+  private static final String ATTEMPT_ID_METADATA_KEY = "attemptId";
 
   private static final String WORKFLOW_TYPE_SYNC = "SyncWorkflow";
   private static final String ACTIVITY_TYPE_REPLICATE = "Replicate";
@@ -26,60 +26,60 @@ public class FailureHelper {
   private static final String ACTIVITY_TYPE_NORMALIZE = "Normalize";
   private static final String ACTIVITY_TYPE_DBT_RUN = "Run";
 
-  public static FailureReason genericFailure(final Throwable t, final Long jobId, final Integer attempt) {
+  public static FailureReason genericFailure(final Throwable t, final Long jobId, final Integer attemptId) {
     return new FailureReason()
         .withInternalMessage(t.getMessage())
         .withStacktrace(ExceptionUtils.getStackTrace(t))
         .withTimestamp(System.currentTimeMillis())
         .withMetadata(new Metadata()
             .withAdditionalProperty(JOB_ID_METADATA_KEY, jobId)
-            .withAdditionalProperty(ATTEMPT_METADATA_KEY, attempt));
+            .withAdditionalProperty(ATTEMPT_ID_METADATA_KEY, attemptId));
   }
 
-  public static FailureReason sourceFailure(final Throwable t, final Long jobId, final Integer attempt) {
-    return genericFailure(t, jobId, attempt)
+  public static FailureReason sourceFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+    return genericFailure(t, jobId, attemptId)
         .withFailureSource(FailureSource.SOURCE)
         .withFailureType(FailureType.UNKNOWN)
         .withExternalMessage("Something went wrong within the source connector");
   }
 
-  public static FailureReason destinationFailure(final Throwable t, final Long jobId, final Integer attempt) {
-    return genericFailure(t, jobId, attempt)
+  public static FailureReason destinationFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+    return genericFailure(t, jobId, attemptId)
         .withFailureSource(FailureSource.DESTINATION)
         .withFailureType(FailureType.UNKNOWN)
         .withExternalMessage("Something went wrong within the destination connector");
   }
 
-  public static FailureReason replicationWorkerFailure(final Throwable t, final Long jobId, final Integer attempt) {
-    return genericFailure(t, jobId, attempt)
+  public static FailureReason replicationWorkerFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+    return genericFailure(t, jobId, attemptId)
         .withFailureSource(FailureSource.REPLICATION_WORKER)
         .withFailureType(FailureType.UNKNOWN)
         .withExternalMessage("Something went wrong during replication");
   }
 
-  public static FailureReason persistenceFailure(final Throwable t, final Long jobId, final Integer attempt) {
-    return genericFailure(t, jobId, attempt)
+  public static FailureReason persistenceFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+    return genericFailure(t, jobId, attemptId)
         .withFailureSource(FailureSource.PERSISTENCE)
         .withFailureType(FailureType.UNKNOWN)
         .withExternalMessage("Something went wrong during state persistence");
   }
 
-  public static FailureReason normalizationFailure(final Throwable t, final Long jobId, final Integer attempt) {
-    return genericFailure(t, jobId, attempt)
+  public static FailureReason normalizationFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+    return genericFailure(t, jobId, attemptId)
         .withFailureSource(FailureSource.NORMALIZATION)
         .withFailureType(FailureType.UNKNOWN)
         .withExternalMessage("Something went wrong during normalization");
   }
 
-  public static FailureReason dbtFailure(final Throwable t, final Long jobId, final Integer attempt) {
-    return genericFailure(t, jobId, attempt)
+  public static FailureReason dbtFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+    return genericFailure(t, jobId, attemptId)
         .withFailureSource(FailureSource.DBT)
         .withFailureType(FailureType.UNKNOWN)
         .withExternalMessage("Something went wrong during dbt");
   }
 
-  public static FailureReason unknownSourceFailure(final Throwable t, final Long jobId, final Integer attempt) {
-    return genericFailure(t, jobId, attempt)
+  public static FailureReason unknownSourceFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+    return genericFailure(t, jobId, attemptId)
         .withFailureSource(FailureSource.UNKNOWN)
         .withFailureType(FailureType.UNKNOWN)
         .withExternalMessage("An unknown failure occurred");
@@ -103,17 +103,17 @@ public class FailureHelper {
                                                                    final String activityType,
                                                                    final Throwable t,
                                                                    final Long jobId,
-                                                                   final Integer attempt) {
+                                                                   final Integer attemptId) {
     if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_REPLICATE)) {
-      return replicationWorkerFailure(t, jobId, attempt);
+      return replicationWorkerFailure(t, jobId, attemptId);
     } else if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_PERSIST)) {
-      return persistenceFailure(t, jobId, attempt);
+      return persistenceFailure(t, jobId, attemptId);
     } else if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_NORMALIZE)) {
-      return normalizationFailure(t, jobId, attempt);
+      return normalizationFailure(t, jobId, attemptId);
     } else if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_DBT_RUN)) {
-      return dbtFailure(t, jobId, attempt);
+      return dbtFailure(t, jobId, attemptId);
     } else {
-      return unknownSourceFailure(t, jobId, attempt);
+      return unknownSourceFailure(t, jobId, attemptId);
     }
   }
 

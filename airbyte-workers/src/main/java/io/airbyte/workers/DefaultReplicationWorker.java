@@ -4,7 +4,6 @@
 
 package io.airbyte.workers;
 
-import com.google.common.collect.Lists;
 import io.airbyte.config.FailureReason;
 import io.airbyte.config.ReplicationAttemptSummary;
 import io.airbyte.config.ReplicationOutput;
@@ -22,6 +21,7 @@ import io.airbyte.workers.protocols.airbyte.AirbyteMapper;
 import io.airbyte.workers.protocols.airbyte.AirbyteSource;
 import io.airbyte.workers.protocols.airbyte.MessageTracker;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -108,8 +108,8 @@ public class DefaultReplicationWorker implements ReplicationWorker {
     destinationConfig.setCatalog(mapper.mapCatalog(destinationConfig.getCatalog()));
 
     final long startTime = System.currentTimeMillis();
-    final AtomicReference<FailureReason> sourceFailure = new AtomicReference<>();
-    final AtomicReference<FailureReason> destinationFailure = new AtomicReference<>();
+    final AtomicReference<FailureReason> sourceFailureRef = new AtomicReference<>();
+    final AtomicReference<FailureReason> destinationFailureRef = new AtomicReference<>();
 
     try {
       LOGGER.info("configured sync modes: {}", syncInput.getCatalog().getStreams()
@@ -132,7 +132,7 @@ public class DefaultReplicationWorker implements ReplicationWorker {
             getDestinationOutputRunnable(destination, cancelled, messageTracker, mdc),
             executors).whenComplete((msg, ex) -> {
           if (ex != null) {
-            destinationFailure.set(FailureHelper.destinationFailure(ex, Long.valueOf(jobId), attempt));
+            destinationFailureRef.set(FailureHelper.destinationFailure(ex, Long.valueOf(jobId), attempt));
           }
         });
 
@@ -140,7 +140,7 @@ public class DefaultReplicationWorker implements ReplicationWorker {
             getReplicationRunnable(source, destination, cancelled, mapper, messageTracker, mdc),
             executors).whenComplete((msg, ex) -> {
           if (ex != null) {
-            sourceFailure.set(FailureHelper.sourceFailure(ex, Long.valueOf(jobId), attempt));
+            sourceFailureRef.set(FailureHelper.sourceFailure(ex, Long.valueOf(jobId), attempt));
           }
         });
 
@@ -217,8 +217,21 @@ public class DefaultReplicationWorker implements ReplicationWorker {
       LOGGER.info("sync summary: {}", summary);
       final ReplicationOutput output = new ReplicationOutput()
           .withReplicationAttemptSummary(summary)
-          .withOutputCatalog(destinationConfig.getCatalog())
-          .withFailures(Lists.newArrayList(sourceFailure.get(), destinationFailure.get()));
+          .withOutputCatalog(destinationConfig.getCatalog());
+
+      // only .setFailures() if a failure occurred
+      final FailureReason sourceFailure = sourceFailureRef.get();
+      final FailureReason destinationFailure = destinationFailureRef.get();
+      final List<FailureReason> failures = new ArrayList<>();
+      if (sourceFailure != null) {
+        failures.add(sourceFailure);
+      }
+      if (destinationFailure != null) {
+        failures.add(destinationFailure);
+      }
+      if (!failures.isEmpty()) {
+        output.setFailures(failures);
+      }
 
       if (messageTracker.getSourceOutputState().isPresent()) {
         LOGGER.info("Source output at least one state message");

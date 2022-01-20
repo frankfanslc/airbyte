@@ -28,7 +28,6 @@ properties:
       - permissionError
       - systemRestart
       - zombie
-      - manualCancellation
   internalMessage:
     description: Human readable failure description for consumption by technical system operators, like Airbyte engineers or OSS users.
     type: string

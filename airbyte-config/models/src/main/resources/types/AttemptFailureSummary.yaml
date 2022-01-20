@@ -16,9 +16,3 @@ properties:
   partialSuccess:
     description: True if the number of committed records for this attempt was greater than 0. False if 0 records were committed.
     type: boolean
-  cancelled:
-    description: Indicates whether this attempt was manually cancelled.
-    type: boolean
-  cancelledBy:
-    description: The user who cancelled the attempt.
-    type: string # TODO how do we represent users?

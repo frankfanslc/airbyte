@@ -8,7 +8,6 @@ import io.airbyte.config.FailureReason.FailureSource;
 import io.airbyte.config.StandardSyncInput;
 import io.airbyte.scheduler.models.IntegrationLauncherConfig;
 import io.airbyte.scheduler.models.JobRunConfig;
-import io.airbyte.workers.helper.FailureHelper;
 import io.airbyte.workers.temporal.TemporalJobType;
 import io.airbyte.workers.temporal.scheduling.activities.ConfigFetchActivity;
 import io.airbyte.workers.temporal.scheduling.activities.ConfigFetchActivity.GetMaxAttemptOutput;

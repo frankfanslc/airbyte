@@ -129,7 +129,6 @@ public interface JobCreationAndStatusUpdateActivity {
 
     private long jobId;
     private int attemptId;
-    private AttemptFailureSummary attemptFailureSummary;
 
   }
 

@@ -190,10 +190,7 @@ public class ConnectionManagerWorkflowImpl implements ConnectionManagerWorkflow 
         jobCreationAndStatusUpdateActivity.jobCancelled(
             new JobCancelledInput(
                 maybeJobId.get(),
-                maybeAttemptId.get(),
-                FailureHelper.failureSummaryForCancellation(failures, partialSuccess, null) // TODO (parker) populate cancelledBy if available
-            )
-        );
+                maybeAttemptId.get()));
       } else if (workflowState.isFailed()) {
         reportFailure(connectionUpdaterInput);
       } else {

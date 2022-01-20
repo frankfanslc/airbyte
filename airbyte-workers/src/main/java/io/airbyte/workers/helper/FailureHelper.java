@@ -91,14 +91,6 @@ public class FailureHelper {
         .withPartialSuccess(partialSuccess);
   }
 
-  public static AttemptFailureSummary failureSummaryForCancellation(final Set<FailureReason> failures,
-                                                                    final Boolean partialSuccess,
-                                                                    final String cancelledBy) {
-    return failureSummary(failures, partialSuccess)
-        .withCancelled(true)
-        .withCancelledBy(cancelledBy);
-  }
-
   public static FailureReason failureReasonFromWorkflowAndActivity(final String workflowType,
                                                                    final String activityType,
                                                                    final Throwable t,

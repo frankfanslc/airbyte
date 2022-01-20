@@ -131,18 +131,18 @@ public class DefaultReplicationWorker implements ReplicationWorker {
         final CompletableFuture<?> destinationOutputThreadFuture = CompletableFuture.runAsync(
             getDestinationOutputRunnable(destination, cancelled, messageTracker, mdc),
             executors).whenComplete((msg, ex) -> {
-          if (ex != null) {
-            destinationFailureRef.set(FailureHelper.destinationFailure(ex, Long.valueOf(jobId), attempt));
-          }
-        });
+              if (ex != null) {
+                destinationFailureRef.set(FailureHelper.destinationFailure(ex, Long.valueOf(jobId), attempt));
+              }
+            });
 
         final CompletableFuture<?> replicationThreadFuture = CompletableFuture.runAsync(
             getReplicationRunnable(source, destination, cancelled, mapper, messageTracker, mdc),
             executors).whenComplete((msg, ex) -> {
-          if (ex != null) {
-            sourceFailureRef.set(FailureHelper.sourceFailure(ex, Long.valueOf(jobId), attempt));
-          }
-        });
+              if (ex != null) {
+                sourceFailureRef.set(FailureHelper.sourceFailure(ex, Long.valueOf(jobId), attempt));
+              }
+            });
 
         LOGGER.info("Waiting for source and destination threads to complete.");
         // CompletableFuture#allOf waits until all futures finish before returning, even if one throws an

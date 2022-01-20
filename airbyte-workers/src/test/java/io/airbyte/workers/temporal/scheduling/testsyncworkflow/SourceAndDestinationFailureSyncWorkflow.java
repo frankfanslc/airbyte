@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2021 Airbyte, Inc., all rights reserved.
+ */
+
 package io.airbyte.workers.temporal.scheduling.testsyncworkflow;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -17,26 +21,25 @@ import org.assertj.core.util.Sets;
 
 public class SourceAndDestinationFailureSyncWorkflow implements SyncWorkflow {
 
-    @VisibleForTesting
-    public static Set<FailureReason> FAILURE_REASONS = Sets.newLinkedHashSet(
-        new FailureReason().withFailureSource(FailureSource.SOURCE).withTimestamp(System.currentTimeMillis()),
-        new FailureReason().withFailureSource(FailureSource.DESTINATION).withTimestamp(System.currentTimeMillis())
-    );
+  @VisibleForTesting
+  public static Set<FailureReason> FAILURE_REASONS = Sets.newLinkedHashSet(
+      new FailureReason().withFailureSource(FailureSource.SOURCE).withTimestamp(System.currentTimeMillis()),
+      new FailureReason().withFailureSource(FailureSource.DESTINATION).withTimestamp(System.currentTimeMillis()));
 
-    @Override
-    public StandardSyncOutput run(final JobRunConfig jobRunConfig,
-        final IntegrationLauncherConfig sourceLauncherConfig,
-        final IntegrationLauncherConfig destinationLauncherConfig,
-        final StandardSyncInput syncInput,
-        final UUID connectionId) {
+  @Override
+  public StandardSyncOutput run(final JobRunConfig jobRunConfig,
+                                final IntegrationLauncherConfig sourceLauncherConfig,
+                                final IntegrationLauncherConfig destinationLauncherConfig,
+                                final StandardSyncInput syncInput,
+                                final UUID connectionId) {
 
-      return new StandardSyncOutput()
-          .withFailures(FAILURE_REASONS.stream().toList())
-          .withStandardSyncSummary(new StandardSyncSummary()
-              .withStatus(ReplicationStatus.FAILED)
-              .withTotalStats(new SyncStats()
-                  .withRecordsCommitted(10L) // should lead to partialSuccess = true
-                  .withRecordsEmitted(20L)));
-    }
+    return new StandardSyncOutput()
+        .withFailures(FAILURE_REASONS.stream().toList())
+        .withStandardSyncSummary(new StandardSyncSummary()
+            .withStatus(ReplicationStatus.FAILED)
+            .withTotalStats(new SyncStats()
+                .withRecordsCommitted(10L) // should lead to partialSuccess = true
+                .withRecordsEmitted(20L)));
+  }
 
 }

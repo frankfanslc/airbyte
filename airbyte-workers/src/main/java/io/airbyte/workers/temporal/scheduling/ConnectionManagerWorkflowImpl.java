@@ -138,7 +138,7 @@ public class ConnectionManagerWorkflowImpl implements ConnectionManagerWorkflow 
 
               if (standardSyncSummary != null && standardSyncSummary.getStatus() == ReplicationStatus.FAILED) {
                 failures.addAll(standardSyncOutput.get().getFailures());
-                partialSuccess = standardSyncOutput.get().getStandardSyncSummary().getTotalStats().getRecordsCommitted() > 0;
+                partialSuccess = standardSyncSummary.getTotalStats().getRecordsCommitted() > 0;
                 workflowState.setFailed(true);
               }
             } catch (final ChildWorkflowFailure childWorkflowFailure) {
@@ -189,8 +189,7 @@ public class ConnectionManagerWorkflowImpl implements ConnectionManagerWorkflow 
       } else if (workflowState.isCancelled()) {
         jobCreationAndStatusUpdateActivity.jobCancelled(
             new JobCancelledInput(
-                maybeJobId.get(),
-                maybeAttemptId.get()));
+                maybeJobId.get()));
       } else if (workflowState.isFailed()) {
         reportFailure(connectionUpdaterInput);
       } else {
@@ -222,9 +221,7 @@ public class ConnectionManagerWorkflowImpl implements ConnectionManagerWorkflow 
         new AttemptFailureInput(
             connectionUpdaterInput.getJobId(),
             connectionUpdaterInput.getAttemptNumber(),
-            FailureHelper.failureSummary(failures, partialSuccess)
-        )
-    );
+            FailureHelper.failureSummary(failures, partialSuccess)));
     final int maxAttempt = configFetchActivity.getMaxAttempt().getMaxAttempt();
     final int attemptNumber = connectionUpdaterInput.getAttemptNumber();
 

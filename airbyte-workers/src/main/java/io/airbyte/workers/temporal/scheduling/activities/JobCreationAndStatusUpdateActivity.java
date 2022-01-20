@@ -128,7 +128,6 @@ public interface JobCreationAndStatusUpdateActivity {
   class JobCancelledInput {
 
     private long jobId;
-    private int attemptId;
 
   }
 

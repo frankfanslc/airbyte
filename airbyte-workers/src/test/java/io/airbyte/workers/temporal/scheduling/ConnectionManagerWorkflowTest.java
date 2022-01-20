@@ -565,6 +565,7 @@ public class ConnectionManagerWorkflowTest {
 
       testEnv.shutdown();
     }
+
   }
 
   private class HasFailureFromSource implements ArgumentMatcher<AttemptFailureInput> {
@@ -579,5 +580,7 @@ public class ConnectionManagerWorkflowTest {
     public boolean matches(final AttemptFailureInput arg) {
       return arg.getAttemptFailureSummary().getFailures().stream().anyMatch(f -> f.getFailureSource().equals(expectedFailureSource));
     }
+
   }
+
 }

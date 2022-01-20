@@ -4,7 +4,7 @@
 
 package io.airbyte.workers.temporal.scheduling;
 
-import io.airbyte.config.FailureReason.FailureSource;
+import io.airbyte.config.FailureReason.FailureOrigin;
 import io.airbyte.config.StandardSyncInput;
 import io.airbyte.scheduler.models.IntegrationLauncherConfig;
 import io.airbyte.scheduler.models.JobRunConfig;
@@ -480,8 +480,8 @@ public class ConnectionManagerWorkflowTest {
       testEnv.sleep(Duration.ofMinutes(2L));
       workflow.submitManualSync();
 
-      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureSource.SOURCE)));
-      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureSource.DESTINATION)));
+      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureOrigin.SOURCE)));
+      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureOrigin.DESTINATION)));
 
       testEnv.shutdown();
     }
@@ -501,7 +501,7 @@ public class ConnectionManagerWorkflowTest {
       testEnv.sleep(Duration.ofMinutes(2L));
       workflow.submitManualSync();
 
-      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureSource.NORMALIZATION)));
+      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureOrigin.NORMALIZATION)));
 
       testEnv.shutdown();
     }
@@ -521,7 +521,7 @@ public class ConnectionManagerWorkflowTest {
       testEnv.sleep(Duration.ofMinutes(2L));
       workflow.submitManualSync();
 
-      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureSource.DBT)));
+      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureOrigin.DBT)));
 
       testEnv.shutdown();
     }
@@ -541,7 +541,7 @@ public class ConnectionManagerWorkflowTest {
       testEnv.sleep(Duration.ofMinutes(2L));
       workflow.submitManualSync();
 
-      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureSource.PERSISTENCE)));
+      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureOrigin.PERSISTENCE)));
 
       testEnv.shutdown();
     }
@@ -561,7 +561,7 @@ public class ConnectionManagerWorkflowTest {
       testEnv.sleep(Duration.ofMinutes(2L));
       workflow.submitManualSync();
 
-      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureSource.REPLICATION_WORKER)));
+      Mockito.verify(mJobCreationAndStatusUpdateActivity).attemptFailure(Mockito.argThat(new HasFailureFromSource(FailureOrigin.REPLICATION_WORKER)));
 
       testEnv.shutdown();
     }
@@ -570,15 +570,15 @@ public class ConnectionManagerWorkflowTest {
 
   private class HasFailureFromSource implements ArgumentMatcher<AttemptFailureInput> {
 
-    private final FailureSource expectedFailureSource;
+    private final FailureOrigin expectedFailureOrigin;
 
-    public HasFailureFromSource(final FailureSource failureSource) {
-      this.expectedFailureSource = failureSource;
+    public HasFailureFromSource(final FailureOrigin failureOrigin) {
+      this.expectedFailureOrigin = failureOrigin;
     }
 
     @Override
     public boolean matches(final AttemptFailureInput arg) {
-      return arg.getAttemptFailureSummary().getFailures().stream().anyMatch(f -> f.getFailureSource().equals(expectedFailureSource));
+      return arg.getAttemptFailureSummary().getFailures().stream().anyMatch(f -> f.getFailureOrigin().equals(expectedFailureOrigin));
     }
 
   }

@@ -6,7 +6,7 @@ package io.airbyte.workers.temporal.scheduling.testsyncworkflow;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.airbyte.config.FailureReason;
-import io.airbyte.config.FailureReason.FailureSource;
+import io.airbyte.config.FailureReason.FailureOrigin;
 import io.airbyte.config.StandardSyncInput;
 import io.airbyte.config.StandardSyncOutput;
 import io.airbyte.config.StandardSyncSummary;
@@ -23,8 +23,8 @@ public class SourceAndDestinationFailureSyncWorkflow implements SyncWorkflow {
 
   @VisibleForTesting
   public static Set<FailureReason> FAILURE_REASONS = Sets.newLinkedHashSet(
-      new FailureReason().withFailureSource(FailureSource.SOURCE).withTimestamp(System.currentTimeMillis()),
-      new FailureReason().withFailureSource(FailureSource.DESTINATION).withTimestamp(System.currentTimeMillis()));
+      new FailureReason().withFailureOrigin(FailureOrigin.SOURCE).withTimestamp(System.currentTimeMillis()),
+      new FailureReason().withFailureOrigin(FailureOrigin.DESTINATION).withTimestamp(System.currentTimeMillis()));
 
   @Override
   public StandardSyncOutput run(final JobRunConfig jobRunConfig,

@@ -4,13 +4,12 @@
 title: FailureSummary
 type: object
 required:
-  - failureSource
-  - failureType
+  - failureOrigin
   - timestamp
 additionalProperties: false
 properties:
-  failureSource:
-    description: Indicates where the error originated. If not set, the source of error is not well known.
+  failureOrigin:
+    description: Indicates where the error originated. If not set, the origin of error is not well known.
     type: string
     enum:
       - unknown
@@ -25,9 +24,9 @@ properties:
     type: string
     enum:
       - unknown
-      - permissionError
-      - systemRestart
-      - zombie
+      - userError
+      - systemError
+      - transient
   internalMessage:
     description: Human readable failure description for consumption by technical system operators, like Airbyte engineers or OSS users.
     type: string
@@ -41,8 +40,5 @@ properties:
   stacktrace:
     description: Raw stacktrace associated with the failure.
     type: string
-  retryable:
-    description: True if this failure may succeed on a retry, ie in the case of transient failure.
-    type: boolean
   timestamp:
     type: integer

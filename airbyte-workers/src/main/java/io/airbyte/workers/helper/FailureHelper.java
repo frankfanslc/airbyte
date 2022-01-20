@@ -6,7 +6,7 @@ package io.airbyte.workers.helper;
 
 import io.airbyte.config.AttemptFailureSummary;
 import io.airbyte.config.FailureReason;
-import io.airbyte.config.FailureReason.FailureSource;
+import io.airbyte.config.FailureReason.FailureOrigin;
 import io.airbyte.config.FailureReason.FailureType;
 import io.airbyte.config.Metadata;
 import java.util.Comparator;
@@ -38,50 +38,43 @@ public class FailureHelper {
 
   public static FailureReason sourceFailure(final Throwable t, final Long jobId, final Integer attemptId) {
     return genericFailure(t, jobId, attemptId)
-        .withFailureSource(FailureSource.SOURCE)
-        .withFailureType(FailureType.UNKNOWN)
+        .withFailureOrigin(FailureOrigin.SOURCE)
         .withExternalMessage("Something went wrong within the source connector");
   }
 
   public static FailureReason destinationFailure(final Throwable t, final Long jobId, final Integer attemptId) {
     return genericFailure(t, jobId, attemptId)
-        .withFailureSource(FailureSource.DESTINATION)
-        .withFailureType(FailureType.UNKNOWN)
+        .withFailureOrigin(FailureOrigin.DESTINATION)
         .withExternalMessage("Something went wrong within the destination connector");
   }
 
   public static FailureReason replicationWorkerFailure(final Throwable t, final Long jobId, final Integer attemptId) {
     return genericFailure(t, jobId, attemptId)
-        .withFailureSource(FailureSource.REPLICATION_WORKER)
-        .withFailureType(FailureType.UNKNOWN)
+        .withFailureOrigin(FailureOrigin.REPLICATION_WORKER)
         .withExternalMessage("Something went wrong during replication");
   }
 
   public static FailureReason persistenceFailure(final Throwable t, final Long jobId, final Integer attemptId) {
     return genericFailure(t, jobId, attemptId)
-        .withFailureSource(FailureSource.PERSISTENCE)
-        .withFailureType(FailureType.UNKNOWN)
+        .withFailureOrigin(FailureOrigin.PERSISTENCE)
         .withExternalMessage("Something went wrong during state persistence");
   }
 
   public static FailureReason normalizationFailure(final Throwable t, final Long jobId, final Integer attemptId) {
     return genericFailure(t, jobId, attemptId)
-        .withFailureSource(FailureSource.NORMALIZATION)
-        .withFailureType(FailureType.UNKNOWN)
+        .withFailureOrigin(FailureOrigin.NORMALIZATION)
         .withExternalMessage("Something went wrong during normalization");
   }
 
   public static FailureReason dbtFailure(final Throwable t, final Long jobId, final Integer attemptId) {
     return genericFailure(t, jobId, attemptId)
-        .withFailureSource(FailureSource.DBT)
-        .withFailureType(FailureType.UNKNOWN)
+        .withFailureOrigin(FailureOrigin.DBT)
         .withExternalMessage("Something went wrong during dbt");
   }
 
-  public static FailureReason unknownSourceFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+  public static FailureReason unknownOriginFailure(final Throwable t, final Long jobId, final Integer attemptId) {
     return genericFailure(t, jobId, attemptId)
-        .withFailureSource(FailureSource.UNKNOWN)
-        .withFailureType(FailureType.UNKNOWN)
+        .withFailureOrigin(FailureOrigin.UNKNOWN)
         .withExternalMessage("An unknown failure occurred");
   }
 
@@ -105,7 +98,7 @@ public class FailureHelper {
     } else if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_DBT_RUN)) {
       return dbtFailure(t, jobId, attemptId);
     } else {
-      return unknownSourceFailure(t, jobId, attemptId);
+      return unknownOriginFailure(t, jobId, attemptId);
     }
   }
 

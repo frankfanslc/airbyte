@@ -112,7 +112,7 @@ public class JobCreationAndStatusUpdateActivityImpl implements JobCreationAndSta
         final JobOutput jobOutput = new JobOutput().withSync(input.getStandardSyncOutput());
         jobPersistence.writeOutput(input.getJobId(), input.getAttemptNumber(), jobOutput);
       } else {
-        log.warn("The job {} doesn't have an input for attempt number {}", input.getJobId(), input.getAttemptNumber());
+        log.warn("The job {} doesn't have an input for the attempt number {}", input.getJobId(), input.getAttemptNumber());
       }
       jobPersistence.succeedAttempt(input.getJobId(), input.getAttemptNumber());
       final Job job = jobPersistence.getJob(input.getJobId());

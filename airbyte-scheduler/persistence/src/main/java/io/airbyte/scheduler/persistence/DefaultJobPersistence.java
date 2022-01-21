@@ -100,6 +100,7 @@ public class DefaultJobPersistence implements JobPersistence {
           + "attempts.log_path AS log_path,\n"
           + "attempts.output AS attempt_output,\n"
           + "attempts.status AS attempt_status,\n"
+          + "attempts.failure_summary AS attempt_failure_summary,\n"
           + "attempts.created_at AS attempt_created_at,\n"
           + "attempts.updated_at AS attempt_updated_at,\n"
           + "attempts.ended_at AS attempt_ended_at\n"
@@ -324,16 +325,15 @@ public class DefaultJobPersistence implements JobPersistence {
   }
 
   @Override
-  public void writeAttemptFailureSummary(final long jobId, final int attemptNumber, final AttemptFailureSummary failureSummary) {
+  public void writeAttemptFailureSummary(final long jobId, final int attemptNumber, final AttemptFailureSummary failureSummary) throws IOException {
     final OffsetDateTime now = OffsetDateTime.ofInstant(timeSupplier.get(), ZoneOffset.UTC);
-    LOGGER.info("Would have persisted failure summary to database: {}", failureSummary);
-    // TODO uncomment once migration to add column is added
-    // jobDatabase.transaction(
-    // ctx -> ctx.update(ATTEMPTS)
-    // .set(ATTEMPTS.FAILURE_SUMMARY, JSONB.valueOf(Jsons.serialize(failureSummary)))
-    // .set(ATTEMPTS.UPDATED_AT, now)
-    // .where(ATTEMPTS.JOB_ID.eq(jobId), ATTEMPTS.ATTEMPT_NUMBER.eq(attemptNumber))
-    // .execute());
+
+    jobDatabase.transaction(
+        ctx -> ctx.update(ATTEMPTS)
+            .set(ATTEMPTS.FAILURE_SUMMARY, JSONB.valueOf(Jsons.serialize(failureSummary)))
+            .set(ATTEMPTS.UPDATED_AT, now)
+            .where(ATTEMPTS.JOB_ID.eq(jobId), ATTEMPTS.ATTEMPT_NUMBER.eq(attemptNumber))
+            .execute());
   }
 
   @Override
@@ -455,6 +455,8 @@ public class DefaultJobPersistence implements JobPersistence {
         Path.of(record.get("log_path", String.class)),
         record.get("attempt_output", String.class) == null ? null : Jsons.deserialize(record.get("attempt_output", String.class), JobOutput.class),
         Enums.toEnum(record.get("attempt_status", String.class), AttemptStatus.class).orElseThrow(),
+        record.get("attempt_failure_summary", String.class) == null ? null
+            : Jsons.deserialize(record.get("attempt_failure_summary", String.class), AttemptFailureSummary.class),
         getEpoch(record, "attempt_created_at"),
         getEpoch(record, "attempt_updated_at"),
         Optional.ofNullable(record.get("attempt_ended_at"))

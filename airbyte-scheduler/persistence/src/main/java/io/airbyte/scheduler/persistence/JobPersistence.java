@@ -134,7 +134,7 @@ public interface JobPersistence {
    * @param failureSummary summary containing failure metadata and ordered list of failures
    * @throws IOException exception due to interaction with persistence
    */
-  void writeAttemptFailureSummary(long jobId, int attemptNumber, AttemptFailureSummary failureSummary);
+  void writeAttemptFailureSummary(long jobId, int attemptNumber, AttemptFailureSummary failureSummary) throws IOException;
 
   /**
    * @param configTypes - type of config, e.g. sync

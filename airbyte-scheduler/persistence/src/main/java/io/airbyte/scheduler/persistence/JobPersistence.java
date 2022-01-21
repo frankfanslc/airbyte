@@ -129,8 +129,8 @@ public interface JobPersistence {
   /**
    * Writes a summary of all failures that occurred during the attempt.
    *
-   * @param jobId          job id
-   * @param attemptNumber  attempt number
+   * @param jobId job id
+   * @param attemptNumber attempt number
    * @param failureSummary summary containing failure metadata and ordered list of failures
    * @throws IOException exception due to interaction with persistence
    */

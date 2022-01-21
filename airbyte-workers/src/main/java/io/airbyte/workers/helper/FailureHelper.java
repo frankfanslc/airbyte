@@ -7,7 +7,6 @@ package io.airbyte.workers.helper;
 import io.airbyte.config.AttemptFailureSummary;
 import io.airbyte.config.FailureReason;
 import io.airbyte.config.FailureReason.FailureOrigin;
-import io.airbyte.config.FailureReason.FailureType;
 import io.airbyte.config.Metadata;
 import java.util.Comparator;
 import java.util.List;
@@ -18,7 +17,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 public class FailureHelper {
 
   private static final String JOB_ID_METADATA_KEY = "jobId";
-  private static final String ATTEMPT_ID_METADATA_KEY = "attemptId";
+  private static final String ATTEMPT_NUMBER_METADATA_KEY = "attemptNumber";
 
   private static final String WORKFLOW_TYPE_SYNC = "SyncWorkflow";
   private static final String ACTIVITY_TYPE_REPLICATE = "Replicate";
@@ -26,54 +25,54 @@ public class FailureHelper {
   private static final String ACTIVITY_TYPE_NORMALIZE = "Normalize";
   private static final String ACTIVITY_TYPE_DBT_RUN = "Run";
 
-  public static FailureReason genericFailure(final Throwable t, final Long jobId, final Integer attemptId) {
+  public static FailureReason genericFailure(final Throwable t, final Long jobId, final Integer attemptNumber) {
     return new FailureReason()
         .withInternalMessage(t.getMessage())
         .withStacktrace(ExceptionUtils.getStackTrace(t))
         .withTimestamp(System.currentTimeMillis())
         .withMetadata(new Metadata()
             .withAdditionalProperty(JOB_ID_METADATA_KEY, jobId)
-            .withAdditionalProperty(ATTEMPT_ID_METADATA_KEY, attemptId));
+            .withAdditionalProperty(ATTEMPT_NUMBER_METADATA_KEY, attemptNumber));
   }
 
-  public static FailureReason sourceFailure(final Throwable t, final Long jobId, final Integer attemptId) {
-    return genericFailure(t, jobId, attemptId)
+  public static FailureReason sourceFailure(final Throwable t, final Long jobId, final Integer attemptNumber) {
+    return genericFailure(t, jobId, attemptNumber)
         .withFailureOrigin(FailureOrigin.SOURCE)
         .withExternalMessage("Something went wrong within the source connector");
   }
 
-  public static FailureReason destinationFailure(final Throwable t, final Long jobId, final Integer attemptId) {
-    return genericFailure(t, jobId, attemptId)
+  public static FailureReason destinationFailure(final Throwable t, final Long jobId, final Integer attemptNumber) {
+    return genericFailure(t, jobId, attemptNumber)
         .withFailureOrigin(FailureOrigin.DESTINATION)
         .withExternalMessage("Something went wrong within the destination connector");
   }
 
-  public static FailureReason replicationWorkerFailure(final Throwable t, final Long jobId, final Integer attemptId) {
-    return genericFailure(t, jobId, attemptId)
+  public static FailureReason replicationWorkerFailure(final Throwable t, final Long jobId, final Integer attemptNumber) {
+    return genericFailure(t, jobId, attemptNumber)
         .withFailureOrigin(FailureOrigin.REPLICATION_WORKER)
         .withExternalMessage("Something went wrong during replication");
   }
 
-  public static FailureReason persistenceFailure(final Throwable t, final Long jobId, final Integer attemptId) {
-    return genericFailure(t, jobId, attemptId)
+  public static FailureReason persistenceFailure(final Throwable t, final Long jobId, final Integer attemptNumber) {
+    return genericFailure(t, jobId, attemptNumber)
         .withFailureOrigin(FailureOrigin.PERSISTENCE)
         .withExternalMessage("Something went wrong during state persistence");
   }
 
-  public static FailureReason normalizationFailure(final Throwable t, final Long jobId, final Integer attemptId) {
-    return genericFailure(t, jobId, attemptId)
+  public static FailureReason normalizationFailure(final Throwable t, final Long jobId, final Integer attemptNumber) {
+    return genericFailure(t, jobId, attemptNumber)
         .withFailureOrigin(FailureOrigin.NORMALIZATION)
         .withExternalMessage("Something went wrong during normalization");
   }
 
-  public static FailureReason dbtFailure(final Throwable t, final Long jobId, final Integer attemptId) {
-    return genericFailure(t, jobId, attemptId)
+  public static FailureReason dbtFailure(final Throwable t, final Long jobId, final Integer attemptNumber) {
+    return genericFailure(t, jobId, attemptNumber)
         .withFailureOrigin(FailureOrigin.DBT)
         .withExternalMessage("Something went wrong during dbt");
   }
 
-  public static FailureReason unknownOriginFailure(final Throwable t, final Long jobId, final Integer attemptId) {
-    return genericFailure(t, jobId, attemptId)
+  public static FailureReason unknownOriginFailure(final Throwable t, final Long jobId, final Integer attemptNumber) {
+    return genericFailure(t, jobId, attemptNumber)
         .withFailureOrigin(FailureOrigin.UNKNOWN)
         .withExternalMessage("An unknown failure occurred");
   }
@@ -88,17 +87,17 @@ public class FailureHelper {
                                                                    final String activityType,
                                                                    final Throwable t,
                                                                    final Long jobId,
-                                                                   final Integer attemptId) {
+                                                                   final Integer attemptNumber) {
     if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_REPLICATE)) {
-      return replicationWorkerFailure(t, jobId, attemptId);
+      return replicationWorkerFailure(t, jobId, attemptNumber);
     } else if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_PERSIST)) {
-      return persistenceFailure(t, jobId, attemptId);
+      return persistenceFailure(t, jobId, attemptNumber);
     } else if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_NORMALIZE)) {
-      return normalizationFailure(t, jobId, attemptId);
+      return normalizationFailure(t, jobId, attemptNumber);
     } else if (workflowType.equals(WORKFLOW_TYPE_SYNC) && activityType.equals(ACTIVITY_TYPE_DBT_RUN)) {
-      return dbtFailure(t, jobId, attemptId);
+      return dbtFailure(t, jobId, attemptNumber);
     } else {
-      return unknownOriginFailure(t, jobId, attemptId);
+      return unknownOriginFailure(t, jobId, attemptNumber);
     }
   }
 

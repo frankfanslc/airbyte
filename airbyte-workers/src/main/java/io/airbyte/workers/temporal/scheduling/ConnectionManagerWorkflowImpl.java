@@ -152,10 +152,11 @@ public class ConnectionManagerWorkflowImpl implements ConnectionManagerWorkflow 
                     af.getActivityType(),
                     af.getCause(),
                     maybeJobId.get(),
-                    maybeAttemptId.get()));
+                    connectionUpdaterInput.getAttemptNumber()));
                 throw childWorkflowFailure;
               } else {
-                failures.add(FailureHelper.unknownOriginFailure(childWorkflowFailure.getCause(), maybeJobId.get(), maybeAttemptId.get()));
+                failures.add(
+                    FailureHelper.unknownOriginFailure(childWorkflowFailure.getCause(), maybeJobId.get(), connectionUpdaterInput.getAttemptNumber()));
                 throw childWorkflowFailure;
               }
             }
